@@ -81,9 +81,7 @@ func DecodeCompactMarketData(data []byte, reader *bytes.Reader) CompactMarketDat
 
 	// Convert UNIX timestamp to human-readable IST time
 	decoded.LTTIST = utils.FormatTimestamp(decoded.LTT)
-	fmt.Println(decoded.LTTIST)
 	decoded.DiffWithCurrrentTime = utils.TimeDifference(time.Now(), decoded.LTTIST)
-	fmt.Println(decoded.DiffWithCurrrentTime)
 	return decoded
 }
 
