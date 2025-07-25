@@ -15,7 +15,7 @@ type subjects struct {
 
 var Subjects = subjects{
 	NseSubjects: NseSubjects,
-	BseSubjects: BseSubjects,
+	// BseSubjects: BseSubjects,
 }
 
 func init() {
@@ -39,8 +39,4 @@ func (s *subjects) Subscribe(conn *websocket.Conn, n int) {
 	// subscribe
 	msg := map[string]interface{}{"a": "subscribe", "v": s.TotalSubjects[:n], "m": "compact_marketdata"}
 	conn.WriteJSON(msg)
-
-	// msg := map[string]interface{}{"a": "subscribe", "v": [][2]int{{1, 26024}}, "m": "compact_marketdata"}
-
-	// conn.WriteJSON(msg)
 }

@@ -13,9 +13,9 @@ func TimeDifference(t1 time.Time, t2 time.Time) int {
 
 // formatTimestamp converts UNIX timestamp to human-readable IST format
 func FormatTimestamp(timestamp int32) time.Time {
+	loc, _ := time.LoadLocation("Asia/Kolkata")
 	if timestamp > 0 {
-		t := time.Unix(int64(timestamp), 0).UTC()
-		return t
+		return time.Unix(int64(timestamp), 0).In(loc)
 	}
 	return time.Now().Add(-12 * time.Hour)
 }

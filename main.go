@@ -15,24 +15,31 @@ import (
 // const url = "ws://localhost:3240/ws/v1/feeds"
 const url = "wss://uat1.tradelab.ltd/ws/v1/feeds"
 
+const N = 10 // N concurrent connections
 
 func Test1() {
 	fmt.Println("Running Test1")
+
+	tr := models.TestReport{Name: "My test", TotalConnections: N, PktAccumulator: make(map[int]*models.ConnectionReport, N)}
+
+	go tr.Print()
 
 	ch := make(chan *models.ConnectionReport, 1000)
 
 	go func() {
 
 		for {
-			msg := <-ch
+			tr.ConsumeConnectionReportForTestReport(<-ch)
 			// TODO : process each connection report and create a test report
-			fmt.Printf("Report Received from a connection, %+v \n", *msg)
+			// fmt.Printf("Report Received from a connection, %+v \n", *msg)
 		}
 
 	}()
 
-	ConnectUser(ch)
-
+	for i := 0; i < N; i++ {
+		go ConnectUser(ch, i)
+	}
+	time.Sleep(10 * time.Minute)
 }
 
 func isWebSocketAlive(conn *websocket.Conn) bool {
@@ -44,9 +51,10 @@ func isWebSocketAlive(conn *websocket.Conn) bool {
 	return err == nil
 }
 
-func ConnectUser(ch chan *models.ConnectionReport) {
+func ConnectUser(ch chan *models.ConnectionReport, id int) {
 
 	cr := models.ConnectionReport{
+		Id:         id,
 		MinLatency: math.MaxInt,
 		MaxLatency: math.MinInt,
 		Alive:      true,
@@ -68,13 +76,16 @@ func ConnectUser(ch chan *models.ConnectionReport) {
 	// send heartbeart periodically
 	go Heartbeat(conn)
 
-	ReadFirstN_SecondsPkts(5, conn)
+	ReadFirstN_SecondsPkts(2, conn)
 	// defer conn.Close()
 
 	go func() {
-		for {
+		ticker := time.NewTicker(5 * time.Second)
+		for range ticker.C {
 			if !isWebSocketAlive(conn) {
-				fmt.Println("Stopping go routine..")
+				ticker.Stop()
+				cr.Alive = false
+				ch <- &cr
 				break
 			}
 			cr.NewPackets.ZeroLatencyPkts = cr.ZeroLatencyPkts - cr.NewPackets.ZeroLatencyPkts
@@ -82,11 +93,7 @@ func ConnectUser(ch chan *models.ConnectionReport) {
 			cr.NewPackets.InvalidPackets = cr.InvalidPackets - cr.NewPackets.InvalidPackets
 			cr.NewPackets.TotalPackets = cr.TotalPackets - cr.NewPackets.TotalPackets
 			cr.NewPackets.ZeroLatencyPkts = cr.ZeroLatencyPkts - cr.NewPackets.ZeroLatencyPkts
-
 			ch <- &cr
-			// update every 5 second
-			time.Sleep(2 * time.Second)
-
 		}
 	}()
 
@@ -133,10 +140,9 @@ func ReadFirstN_SecondsPkts(n int, conn *websocket.Conn) {
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Println("Read initial context done.")
+			fmt.Printf("Read first %v second packets \n", n)
 			return
 		default:
-			fmt.Println("Reading message")
 			conn.ReadMessage()
 		}
 	}

@@ -1,12 +1,13 @@
 package models
 
 import (
-	"fmt"
+	// "fmt
 
 	"example.com/test-nats/decoder"
 )
 
 type ConnectionReport struct {
+	Id                   int
 	TotalPackets         int
 	InvalidPackets       int
 	TotalSubscriptions   int
@@ -38,7 +39,7 @@ func (cr *ConnectionReport) GenerateConnectionReport(packet *decoder.CompactMark
 }
 
 func AppendLatencyPacket(packet *decoder.CompactMarketData, cr *ConnectionReport) {
-	fmt.Printf("%+v \n", packet)
+	// fmt.Printf("%+v \n", packet)
 	cr.AvgLatency = (cr.AvgLatency*cr.LatencyPackets + packet.DiffWithCurrrentTime) / (cr.LatencyPackets + 1)
 	cr.LatencyPackets++
 
