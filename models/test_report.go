@@ -5,8 +5,11 @@ import (
 	"math"
 	"time"
 
-	. "example.com/test-nats/utils"
+	"example.com/test-nats/utils"
 )
+
+
+const TEST_PRINT_TIME = 5 * time.Second // prints every 5 seconds.
 
 type TestReport struct {
 	Name                 string
@@ -35,7 +38,7 @@ func (tr *TestReport) ConsumeConnectionReportForTestReport(cr *ConnectionReport)
 }
 
 func (tr *TestReport) Print() {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(TEST_PRINT_TIME)
 	defer ticker.Stop()
 	for range ticker.C {
 		tr.ConstructTestReport()
@@ -60,8 +63,8 @@ func (tr *TestReport) ConstructTestReport() {
 		if cr.Alive {
 			activeConnections++
 		}
-		minLatency = Min(minLatency, cr.MinLatency)
-		maxLatency = Max(maxLatency, cr.MaxLatency)
+		minLatency = utils.Min(minLatency, cr.MinLatency)
+		maxLatency = utils.Max(maxLatency, cr.MaxLatency)
 		totalLatency += cr.AvgLatency
 		totalPackets += cr.TotalPackets
 		invalidPackets += cr.InvalidPackets

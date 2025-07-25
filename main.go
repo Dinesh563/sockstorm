@@ -13,9 +13,12 @@ import (
 )
 
 // const url = "ws://localhost:3240/ws/v1/feeds"
-const url = "wss://uat1.tradelab.ltd/ws/v1/feeds"
-
-const N = 10 // N concurrent connections
+const (
+	url                    = "wss://uat1.tradelab.ltd/ws/v1/feeds"
+	N                      = 10 // N concurrent connections
+	CONNECTION_REPORT_TIME = 5 * time.Second
+	HeartbeatTime          = 25 * time.Second
+)
 
 func Test1() {
 	fmt.Println("Running Test1")
@@ -80,7 +83,7 @@ func ConnectUser(ch chan *models.ConnectionReport, id int) {
 	// defer conn.Close()
 
 	go func() {
-		ticker := time.NewTicker(5 * time.Second)
+		ticker := time.NewTicker(CONNECTION_REPORT_TIME)
 		for range ticker.C {
 			if !isWebSocketAlive(conn) {
 				ticker.Stop()
@@ -128,7 +131,7 @@ func Heartbeat(conn *websocket.Conn) {
 		if conn.WriteJSON(msg) != nil {
 			break
 		}
-		time.Sleep(25 * time.Second)
+		time.Sleep(HeartbeatTime)
 	}
 }
 
