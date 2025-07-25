@@ -15,7 +15,7 @@ import (
 // const url = "ws://localhost:3240/ws/v1/feeds"
 const (
 	url                            = "wss://uat1.tradelab.ltd/ws/v1/feeds"
-	N                              = 2000 // N concurrent connections
+	N                              = 1000 // N concurrent connections
 	CONNECTION_REPORT_TIME         = 5 * time.Second
 	HeartbeatTime                  = 25 * time.Second
 	NoOfSubscriptionsPerConnection = 100
@@ -46,14 +46,16 @@ func Test1() {
 	time.Sleep(10 * time.Minute)
 }
 
-func isWebSocketAlive(conn *websocket.Conn) bool {
-	if conn == nil {
-		return false
-	}
+// func isWebSocketAlive(conn *websocket.Conn) bool {
+// 	if conn == nil {
+// 		return false
+// 	}
 
-	err := conn.WriteMessage(websocket.PingMessage, nil)
-	return err == nil
-}
+// 	err := conn.WriteMessage(websocket.PingMessage, nil)
+// 	return err == nil
+// }
+
+
 
 func ConnectUser(ch chan *models.ConnectionReport, id int) {
 
@@ -142,5 +144,6 @@ func ReadFirstN_SecondsPkts(n int, conn *websocket.Conn) {
 
 func main() {
 	fmt.Println("Testing NATS with GO..")
-	Test1()
+	// Test1()
+	TestExponentially()
 }
