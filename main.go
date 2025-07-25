@@ -14,10 +14,11 @@ import (
 
 // const url = "ws://localhost:3240/ws/v1/feeds"
 const (
-	url                    = "wss://uat1.tradelab.ltd/ws/v1/feeds"
-	N                      = 10 // N concurrent connections
-	CONNECTION_REPORT_TIME = 5 * time.Second
-	HeartbeatTime          = 25 * time.Second
+	url                            = "wss://uat1.tradelab.ltd/ws/v1/feeds"
+	N                              = 2000 // N concurrent connections
+	CONNECTION_REPORT_TIME         = 5 * time.Second
+	HeartbeatTime                  = 25 * time.Second
+	NoOfSubscriptionsPerConnection = 100
 )
 
 func Test1() {
@@ -74,28 +75,17 @@ func ConnectUser(ch chan *models.ConnectionReport, id int) {
 	}
 
 	// subscribe n number of suscriptions randomly
-	subjects.Subjects.Subscribe(conn, 20)
+	subjects.Subjects.Subscribe(conn, NoOfSubscriptionsPerConnection)
 
 	// send heartbeart periodically
 	go Heartbeat(conn)
 
-	ReadFirstN_SecondsPkts(2, conn)
+	ReadFirstN_SecondsPkts(5, conn)
 	// defer conn.Close()
 
 	go func() {
 		ticker := time.NewTicker(CONNECTION_REPORT_TIME)
 		for range ticker.C {
-			if !isWebSocketAlive(conn) {
-				ticker.Stop()
-				cr.Alive = false
-				ch <- &cr
-				break
-			}
-			cr.NewPackets.ZeroLatencyPkts = cr.ZeroLatencyPkts - cr.NewPackets.ZeroLatencyPkts
-			cr.NewPackets.OneSecondLatencyPkts = cr.OneSecondLatencyPkts - cr.NewPackets.OneSecondLatencyPkts
-			cr.NewPackets.InvalidPackets = cr.InvalidPackets - cr.NewPackets.InvalidPackets
-			cr.NewPackets.TotalPackets = cr.TotalPackets - cr.NewPackets.TotalPackets
-			cr.NewPackets.ZeroLatencyPkts = cr.ZeroLatencyPkts - cr.NewPackets.ZeroLatencyPkts
 			ch <- &cr
 		}
 	}()
@@ -137,7 +127,6 @@ func Heartbeat(conn *websocket.Conn) {
 
 // read_packets after n seconds
 func ReadFirstN_SecondsPkts(n int, conn *websocket.Conn) {
-	fmt.Println("Reading first n pkts")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(n)*time.Second)
 	defer cancel()
 	for {

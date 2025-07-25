@@ -74,7 +74,7 @@ func (tr *TestReport) ConstructTestReport() {
 	}
 	tr.ActiveConnections = activeConnections
 	if latencyPackets > 0 {
-		tr.AvgLatency = float64(totalLatency / latencyPackets)
+		tr.AvgLatency = float64(totalLatency) / float64(latencyPackets)
 	} else {
 		tr.AvgLatency = 0.0
 	}
@@ -106,15 +106,15 @@ func PrettyPrintReport(tr *TestReport) {
 	if tr.MinLatency == math.MaxInt64 {
 		fmt.Println("Min Latency:           (no data)")
 	} else {
-		fmt.Printf("Min Latency:           %d ms\n", tr.MinLatency)
+		fmt.Printf("Min Latency:           %d s\n", tr.MinLatency)
 	}
 
 	if tr.MaxLatency == math.MinInt64 {
 		fmt.Println("Max Latency:           (no data)")
 	} else {
-		fmt.Printf("Max Latency:           %d ms\n", tr.MaxLatency)
+		fmt.Printf("Max Latency:           %d s\n", tr.MaxLatency)
 	}
 
-	fmt.Printf("Avg Latency:           %f ms\n", tr.AvgLatency)
+	fmt.Printf("Avg Latency:           %f s\n", tr.AvgLatency)
 	fmt.Printf("===========================================================================\n")
 }

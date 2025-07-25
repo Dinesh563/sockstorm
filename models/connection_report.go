@@ -22,18 +22,17 @@ type ConnectionReport struct {
 }
 
 func (cr *ConnectionReport) GenerateConnectionReport(packet *decoder.CompactMarketData) {
-	switch packet.DiffWithCurrrentTime {
-	case 0:
+	switch v := packet.DiffWithCurrrentTime; {
+	case v == 0:
 		cr.ZeroLatencyPkts++
-	case 1:
+	case v == 1:
 		cr.OneSecondLatencyPkts++
-	case 43200:
+	case v == 43200, v >= 18_000:
 		// invalid timestamp packet
 		cr.InvalidPackets++
 	default:
 		// high latency packet.
 		AppendLatencyPacket(packet, cr)
-
 	}
 	cr.TotalPackets++
 }
